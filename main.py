@@ -1,5 +1,125 @@
-from random import randint
 import pygame
+from os.path import join
+from random import randint, uniform
+
+class Player(pygame.sprite.Sprite):
+    def __init__(self,groups):
+        super().__init__(groups)
+        self.original_surf = pygame.image.load(join('D:/cs_python/pygame/spaceshoot/image/player.png')).convert_alpha()
+        self.image = self.original_surf
+        self.rect = self.image.get_rect(center = (Window_Width / 2,Window_Hight / 2))
+        self.direction = pygame.Vector2()
+        self.speed=300
+
+        #cooldown
+        self.can_shoot =True
+        self.laser_shoot_time=0
+        self.cooldown_duaration=2000 #in milliseconds
+
+
+
+        #mask
+        self.mask = pygame.mask.from_surface(self.image)
+        """mask_surf = mask.to_surface()
+        mask_surf.set_colorkey((0,0,0))
+        self.image = mask_surf"""
+
+    def laser_timer(self):
+        if not self.can_shoot:
+            current_time =pygame.time.get_ticks()
+            if current_time - self.laser_shoot_time >= self.cooldown_duaration:
+                self.can_shoot =True
+
+    def update(self,dt):
+        keys =pygame.key.get_pressed()
+        self.direction.x = int(keys[pygame.K_RIGHT]) -int(keys[pygame.K_LEFT])
+        self.direction.y = int(keys[pygame.K_DOWN]) -int(keys[pygame.K_UP])
+        self.direction = self.direction.normalize() if self.direction else self.direction
+        self.rect.x += self.direction.x * self.speed * dt
+        self.rect.y += self.direction.y * self.speed * dt
+
+        recent_keys =pygame.key.get_pressed()
+        if recent_keys[pygame.K_SPACE] and self.can_shoot:
+            Laser(laser_surf,self.rect.midtop,(all_sprites, laser_sprites))
+            self.can_shoot = False
+            self.laser_shoot_time = pygame.time.get_ticks()
+            laser_sound.play()
+        
+        self.laser_timer()
+
+class Star(pygame.sprite.Sprite):
+    def __init__(self,groups,surf):
+        super().__init__(groups)
+        self.image=surf
+        self.rect=self.image.get_rect(center=(randint(0,Window_Width),randint(0,Window_Hight)))
+       
+class Laser(pygame.sprite.Sprite):
+    def __init__(self,surf,pos,*groups):
+        super().__init__(*groups)
+        self.image=pygame.image.load(('D:/cs_python/pygame/spaceshoot/image/laser.png')).convert_alpha()
+        self.rect = self.image.get_rect(midbottom=pos)
+
+    def update(self,dt):
+        self.rect.centery -=400*dt
+        if self.rect.bottom<0:
+            self.kill()
+
+class Meteor(pygame.sprite.Sprite):
+    def __init__(self,surf,pos,*groups):
+        super().__init__(*groups)
+        self.image = self.original_surf = surf
+        self.rect = self.image.get_rect(center=pos)
+        self.start_time = pygame.time.get_ticks()
+        self.lifetime= 3000
+        self.direction = pygame.Vector2(uniform(-0.5,0.5),1)
+        self.speed=randint(400,500)
+        self.rotation_speed = randint(40,80)
+        self.rotation =0
+
+    def  update(self,dt):
+        self.rect.centery +=400*dt
+        if pygame.time.get_ticks() - self.start_time >= self.lifetime:  
+            self.kill()
+        self.rotation += self.rotation_speed*dt
+        self.image = pygame.transform.rotozoom(self.original_surf,self.rotation,1)
+        self.rect = self.image.get_rect(center = self.rect.center)
+
+class Explosion(pygame.sprite.Sprite):
+    def __init__(self, frames, pos, *groups):
+        super().__init__(*groups)
+        self.frames = frames
+        self.frames_index = 0
+        self.image = self.frames[self.frames_index]
+        self.rect = self.image.get_rect(center =pos)   
+
+    def update(self, dt):    
+        self.frames_index += 20*dt 
+        if self.frames_index < len(self.frames):
+            self.image = self.frames[int(self.frames_index)]
+        else:
+            self.kill()
+
+def collision():
+    global running
+
+    collision_sprite = pygame.sprite.spritecollide(player,meteor_sprites,True,pygame.sprite.collide_mask)
+    if collision_sprite:
+        running = False
+    
+    for laser in laser_sprites:
+        collided_sprites = pygame.sprite.spritecollide(laser,meteor_sprites,True)
+        if collided_sprites:
+            laser.kill()
+            Explosion(explosion_frames, laser.rect.midtop,all_sprites)
+            explosion_sound.play()
+
+def display_score():
+    current_time = pygame.time.get_ticks() // 100
+    text_surf = font.render(str(current_time),True,(240,240,240))
+    text_rect = text_surf.get_rect(midbottom =(Window_Width / 2,Window_Hight - 50))
+    disply_surface.blit(text_surf,text_rect)
+    pygame.draw.rect(disply_surface,'white',text_rect.inflate(20,20).move(0,-3 ),5,5)
+
 #pygame setup
 pygame.init()
 Window_Width,Window_Hight = 1280,720
@@ -8,68 +128,56 @@ pygame.display.set_caption("Space Shooter")
 running=True
 clock =pygame.time.Clock()
 
-#surface
-surf=pygame.Surface((100,200))
-surf.fill(('blue'))
-x=100
-
-#imports
-player_surf=pygame.image.load(('D:/cs_python/pygame/spaceshoot/image/player.png')).convert_alpha()
-player_rect =player_surf.get_rect(center=(Window_Width/2,Window_Hight/2))
-player_direction = pygame.math.Vector2(0,0)
-player_speed =1000
-
+#import
 star_surf=pygame.image.load(('D:/cs_python/pygame/spaceshoot/image/star.png')).convert_alpha()
-star_positions=[(randint(0,Window_Width),randint(0,Window_Hight)) for i in range(20)]
-
-metror_surf=pygame.image.load(('D:/cs_python/pygame/spaceshoot/image/meteor.png')).convert_alpha()
-metror_rect=metror_surf.get_rect(center=(Window_Width/2,Window_Hight/2))
-
+meteor_surf=pygame.image.load(('D:/cs_python/pygame/spaceshoot/image/meteor.png')).convert_alpha()
 laser_surf=pygame.image.load(('D:/cs_python/pygame/spaceshoot/image/laser.png')).convert_alpha()
-laser_rect=laser_surf.get_rect(bottomleft=(20,Window_Hight-20))
+font = pygame.font.Font(join('D:/cs_python/pygame/spaceshoot/image/Oxanium-Bold.ttf'),24)
+explosion_frames = [pygame.image.load(join('cs_python','pygame','spaceshoot','image','explosion',f'{i}.png')).convert_alpha() for i in range(21)]
+
+laser_sound = pygame.mixer.Sound(join('D:/cs_python/pygame/spaceshoot/bgm/laser.wav'))
+laser_sound.set_volume(0.5)
+explosion_sound = pygame.mixer.Sound(join('D:/cs_python/pygame/spaceshoot/bgm/explosion.wav'))
+explosion_sound.set_volume(0.5)
+gm_sound = pygame.mixer.Sound(join('D:/cs_python/pygame/spaceshoot/bgm/game_music.wav'))
+gm_sound.set_volume(0.2)
+gm_sound.play(loops = -1)
+
+#sprite
+all_sprites = pygame.sprite.Group()
+meteor_sprites = pygame.sprite.Group()
+laser_sprites = pygame.sprite.Group()
+for i in range(20):
+    Star(all_sprites, star_surf)
+player = Player(all_sprites)  
+#laser = Laser(all_sprites)
+
+#custom event -> meteor
+meteor_event =pygame.event.custom_type()
+pygame.time.set_timer(meteor_event,500)
 
 while running:
     dt=clock.tick()/1000  #delta time in seconds
-    
     #event loop
     for event in pygame.event.get():
         if event.type==pygame.QUIT:
             running =False
+        if event.type==meteor_event:
+            x,y=randint(0,Window_Width),randint(-200,-100)
+            Meteor(meteor_surf,(x,y),all_sprites,meteor_sprites)
+    #update
+    all_sprites.update(dt)
+    collision() 
 
-        
-        """if event.type ==pygame.KEYDOWN and event.key == pygame.K_1:
-            print(1)
-        if event.type == pygame.MOUSEMOTION:
-            player_rect.center = event.pos"""
-            
-    #input
-    #print(pygame.mouse.get_rel())
-    keys =pygame.key.get_pressed()
-    player_direction.x = int(keys[pygame.K_RIGHT]) -int(keys[pygame.K_LEFT])
-    player_direction.y = int(keys[pygame.K_DOWN]) -int(keys[pygame.K_UP])
-    player_direction = player_direction.normalize() if player_direction else player_direction
-    player_rect.center += player_direction*player_speed*dt
-    
-    
     #DRAW THE GAME
-    disply_surface.fill(('gray'))
-    for pos in star_positions:
-        disply_surface.blit(star_surf,pos)
-   
+    disply_surface.fill('#3a2e3f')
+    all_sprites.draw(disply_surface)
+    display_score()
 
-    disply_surface.blit(metror_surf,metror_rect)
-    disply_surface.blit(laser_surf,laser_rect)
-    disply_surface.blit(player_surf,player_rect)
     
-    #player movement
+    pygame.display.update()
 
-    """if player_rect.bottom >= Window_Hight or player_rect.top <= 0:
-        player_rect.bottom >= Window_Hight
-        player_direction.y *= -1
-    if player_rect.right >= Window_Width or player_rect.left <= 0:
-        player_direction.x *= -1
-    player_rect.center +=player_direction*player_speed*dt
-    disply_surface.blit(player_surf,player_rect)"""
+pygame.quit()
 
 
     pygame.display.update()
