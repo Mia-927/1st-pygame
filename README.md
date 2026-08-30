@@ -21,6 +21,7 @@ PythonとPygameを使って初めて制作したゲームです。
 
 * Python
 * Pygame
+* IDLE Python 3.13 64-bit
 
 ## 備考
 本作品は、上記のチュートリアルを参考に制作した学習用の作品です。
@@ -38,9 +39,10 @@ This game was created based on the following tutorial:
 I created this project around winter 2025 as part of my learning experience with Python and Pygame.
 
 # Technologies
-Python
-Pygame
-
+* Python
+* Pygame
+* IDLE Python 3.13 64-bit
+* 
 #Note
 
 This project is a learning project created with reference to the tutorial above.
