@@ -1,5 +1,6 @@
-English is below
-# 2025/12/01に製作　
+
+##<img width="1605" height="922" alt="スクリーンショット 2026-08-30 181811" src="https://github.com/user-attachments/assets/76ec36ab-0597-4980-a0be-821178fac695" />
+ 2025/12/01に製作　
 # ゲーム
 PythonとPygameを使って初めて制作したゲームです。
 プログラミングを習い始めて初めての製作でした。
