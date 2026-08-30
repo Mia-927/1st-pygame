@@ -42,7 +42,7 @@ I created this project around winter 2025 as part of my learning experience with
 * Python
 * Pygame
 * IDLE Python 3.13 64-bit
-* 
+
 #Note
 
 This project is a learning project created with reference to the tutorial above.
