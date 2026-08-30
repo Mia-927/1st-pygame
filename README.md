@@ -25,14 +25,14 @@ PythonとPygameを使って初めて制作したゲームです。
 本作品は、上記のチュートリアルを参考に制作した学習用の作品です。
 
 ---
-# This is my first game project, created using Python and Pygame.
+### This is my first game project, created using Python and Pygame.
 
 # About
 This game was created based on the following tutorial:
 
-## Master Python by making 5 games [the new ultimate introduction to pygame]
+### Master Python by making 5 games [the new ultimate introduction to pygame]
 
-Reference:00:06:49 – 03:45:23
+**Reference:** 00:06:49 – 03:45:23
 
 I created this project around winter 2025 as part of my learning experience with Python and Pygame.
 
